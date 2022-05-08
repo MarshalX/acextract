@@ -24,6 +24,8 @@
 //  SOFTWARE.
 
 import Foundation
+import CoreGraphics
+import ImageIO
 
 // MARK: - Protocols
 protocol NameStringConvertible {

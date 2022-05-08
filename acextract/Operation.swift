@@ -120,7 +120,8 @@ private extension CUINamedImage {
      */
     func acSaveAtPath(filePath: String) throws {
         if self._rendition().pdfDocument() != nil {
-            try self.acSavePDF(filePath: filePath)
+            print("I can't export as PDF anymore (\(filePath))")
+//            try self.acSavePDF(filePath: filePath)
         } else if self._rendition().unslicedImage() != nil {
             try self.acSaveImage(filePath: filePath)
         } else {
@@ -130,48 +131,53 @@ private extension CUINamedImage {
 
     func acSaveImage(filePath: String) throws {
         let filePathURL = NSURL(fileURLWithPath: filePath)
+        try FileManager.default.createDirectory(at: filePathURL.deletingLastPathComponent! as URL, withIntermediateDirectories: true, attributes: nil)
+        
         guard let cgImage = self._rendition().unslicedImage()?.takeUnretainedValue() else {
+            print("cannotSaveImage cuz unslicedImage")
             throw ExtractOperationError.cannotSaveImage
         }
         guard let cgDestination = CGImageDestinationCreateWithURL(filePathURL, kUTTypePNG, 1, nil) else {
+            print("cannotSaveImage cuz CGImageDestinationCreateWithURL")
             throw ExtractOperationError.cannotSaveImage
         }
 
         CGImageDestinationAddImage(cgDestination, cgImage, nil)
 
         if !CGImageDestinationFinalize(cgDestination) {
+            print("cannotSaveImage cuz CGImageDestinationFinalize")
             throw ExtractOperationError.cannotSaveImage
         }
     }
 
-    func acSavePDF(filePath: String) throws {
-        // Based on:
-        // http://stackoverflow.com/questions/3780745/saving-a-pdf-document-to-disk-using-quartz
-
-        guard let cgPDFDocument = self._rendition().pdfDocument()?.takeUnretainedValue() else {
-            throw ExtractOperationError.cannotCreatePDFDocument
-        }
-        // Create the pdf context
-        let cgPage = CGPDFDocument.page(cgPDFDocument) as! CGPDFPage // swiftlint:disable:this force_cast
-        var cgPageRect = cgPage.getBoxRect(.mediaBox)
-        let mutableData = NSMutableData()
-
-        let cgDataConsumer = CGDataConsumer(data: mutableData)
-        let cgPDFContext = CGContext(consumer: cgDataConsumer!, mediaBox: &cgPageRect, nil)
-        defer {
-            cgPDFContext!.closePDF()
-        }
-
-        if cgPDFDocument.numberOfPages > 0 {
-            cgPDFContext!.beginPDFPage(nil)
-            cgPDFContext!.drawPDFPage(cgPage)
-            cgPDFContext!.endPDFPage()
-        } else {
-            throw ExtractOperationError.cannotCreatePDFDocument
-        }
-
-        if !mutableData.write(toFile: filePath, atomically: true) {
-            throw ExtractOperationError.cannotCreatePDFDocument
-        }
-    }
+//    func acSavePDF(filePath: String) throws {
+//        // Based on:
+//        // http://stackoverflow.com/questions/3780745/saving-a-pdf-document-to-disk-using-quartz
+//
+//        guard let cgPDFDocument = self._rendition().pdfDocument()?.takeUnretainedValue() else {
+//            throw ExtractOperationError.cannotCreatePDFDocument
+//        }
+//        // Create the pdf context
+//        let cgPage = CGPDFDocument.page(cgPDFDocument) as! CGPDFPage // swiftlint:disable:this force_cast
+//        var cgPageRect = cgPage.getBoxRect(.mediaBox)
+//        let mutableData = NSMutableData()
+//
+//        let cgDataConsumer = CGDataConsumer(data: mutableData)
+//        let cgPDFContext = CGContext(consumer: cgDataConsumer!, mediaBox: &cgPageRect, nil)
+//        defer {
+//            cgPDFContext!.closePDF()
+//        }
+//
+//        if cgPDFDocument.numberOfPages > 0 {
+//            cgPDFContext!.beginPDFPage(nil)
+//            cgPDFContext!.drawPDFPage(cgPage)
+//            cgPDFContext!.endPDFPage()
+//        } else {
+//            throw ExtractOperationError.cannotCreatePDFDocument
+//        }
+//
+//        if !mutableData.write(toFile: filePath, atomically: true) {
+//            throw ExtractOperationError.cannotCreatePDFDocument
+//        }
+//    }
 }

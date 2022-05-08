@@ -24,6 +24,8 @@
 //  SOFTWARE.
 
 @import Foundation;
+@import CoreGraphics;
+@import ImageIO;
 
 // Hierarchy:
 // - CUICatalog:
